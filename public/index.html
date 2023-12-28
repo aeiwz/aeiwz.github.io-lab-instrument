@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lab Instrument Stock</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8sh+WyVnAV8ZtF73gpjpuh9SjU9MWA2LZz" crossorigin="anonymous">
+
+  <style>
+    body {
+      background-color: #ffffff;
+      color: #484848;
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 800px;
+    }
+
+    h1, h2 {
+      color: #007bff;
+    }
+
+    .card {
+      background-color: #f3f3f3;
+      box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+      margin-bottom: 20px;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      width: 100%;
+      height: 100%;
+
+
+      border-radius: 5px;
+
+      overflow: hidden;
+
+      text-align: center;
+
+    }
+
+    .btn-primary, .btn-success, .btn-danger {
+      width: 30%;
+      margin-top: 10px;
+    }
+
+    input[type="text"], input[type="number"] {
+      width: 80%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body class="container mt-5">
+  <h1>Lab Instrument Stock</h1>
+  <h2 class="mt-5">Add New Item</h2>
+  <div class="form-group">
+    <label for="newItemName">Name:</label>
+    <input type="text" class="form-control" id="newItemName" placeholder="Item Name">
+  </div>
+  <div class="form-group">
+    <label for="newItemQuantity">Quantity:</label>
+    <input type="number" class="form-control" id="newItemQuantity" placeholder="Quantity">
+  </div>
+  <button class="btn btn-primary" onclick="addItem()">Add Item</button>
+
+
+  <div id="inventory"></div>
+
+  
+
+  <script>
+    // Fetch inventory data and update the UI
+    async function fetchInventory() {
+      const response = await fetch('/inventory');
+      const data = await response.json();
+
+      const inventoryElement = document.getElementById('inventory');
+      inventoryElement.innerHTML = '<h2 class="mt-5">Inventory</h2>';
+      data.forEach(item => {
+        inventoryElement.innerHTML += `
+          <div class="card">
+            <div class="card-body">
+              <p class="card-text">${item.name} - Quantity: ${item.quantity}</p>
+              <div class="form-group">
+                <input type="number" class="form-control" id="quantity_${item.id}" placeholder="New Quantity">
+              </div>
+              <button class="btn btn-success" onclick="updateQuantity(${item.id})">Update</button>
+              <button class="btn btn-danger" onclick="removeItem(${item.id})">Remove</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // Add a new item to the database
+    async function addItem() {
+      const newItemName = document.getElementById('newItemName').value;
+      const newItemQuantity = document.getElementById('newItemQuantity').value;
+
+      await fetch('/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `name=${newItemName}&quantity=${newItemQuantity}`,
+      });
+
+      // Refresh inventory after adding an item
+      fetchInventory();
+    }
+
+    // Update quantity
+    async function updateQuantity(id) {
+      const quantity = document.getElementById(`quantity_${id}`).value;
+
+      await fetch('/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `id=${id}&quantity=${quantity}`,
+      });
+
+      // Refresh inventory after updating an item
+      fetchInventory();
+    }
+
+    // Remove an item from the database
+    async function removeItem(id) {
+      await fetch('/remove', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `id=${id}`,
+      });
+
+      // Refresh inventory after removing an item
+      fetchInventory();
+    }
+
+    // Initial load
+    fetchInventory();
+  </script>
+
+  <!-- Bootstrap JS and Popper.js -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-Mf3bWbQa/5RAmEWEktMjIvYCz72caE1QhjwZZ7pUfA5C9bP5Fn8O3bCIIx1Di9zF" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8sh+WyVnAV8ZtF73gpjpuh9SjU9MWA2LZz" crossorigin="anonymous"></script>
+
+</body>
+</html>
